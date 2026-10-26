@@ -1,0 +1,9 @@
+{
+  "name": "divernote-append",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Divernote extension: a link that opens an issue in a browser to comment on its log and changes.",
+  "divernote": { "extensions": ["index.mjs"] },
+  "scripts": { "test": "node --test test/link.test.mjs" }
+}
