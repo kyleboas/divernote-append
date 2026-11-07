@@ -5,7 +5,8 @@ so you can select part of the agent's reply or lines of its changes, choose
 **Comment**, and send the comments back with Enter. Plannotator-style
 annotation for Divernote issues.
 
-- `/append` in an open issue shows the link under the input.
+- `/append` in an open issue opens it in this computer's browser. Over SSH it
+  tells you to run `divernote append <task-id>` for the link.
 - `divernote append <task-id>` prints it; `--open` also opens it here.
 
 The link is your vault node's own page, `https://<node>/app/#issue=<task-id>`.
