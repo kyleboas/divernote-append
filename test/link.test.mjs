@@ -62,7 +62,7 @@ test('/append opens the issue in the browser here, and over SSH says how to prin
   assert.match(registered().issueCommands.get('append').description, /comment/);
   assert.deepEqual(await run({ env: {}, open: async url => { opened.push(url); return true; } }), { status: 'Opened this issue in your browser.' });
   assert.deepEqual(opened, ['https://notes.example.com/app/#issue=task-9']);
-  assert.deepEqual(await run({ env: {}, open: async () => false }), { status: 'The browser could not be opened. Run divernote append with this issue's ID for the link.' });
-  assert.deepEqual(await run({ env: { SSH_CONNECTION: '1 2 3 4' }, open: async () => assert.fail('no browser over SSH') }), { status: 'Run divernote append with this issue's ID for the link.' });
+  assert.deepEqual(await run({ env: {}, open: async () => false }), { status: 'The browser could not be opened. Run divernote append with the issue ID for the link.' });
+  assert.deepEqual(await run({ env: { SSH_CONNECTION: '1 2 3 4' }, open: async () => assert.fail('no browser over SSH') }), { status: 'Run divernote append with the issue ID for the link.' });
   assert.deepEqual(await run({ env: {}, open: async () => assert.fail('no link to open') }, 'a b'), { status: 'That is not an issue ID.' });
 });

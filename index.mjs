@@ -18,7 +18,7 @@ export default function append(divernote, { open = openInBrowser, env = process.
     // The command runs in the terminal that typed it, so the browser here is
     // the reader's, except over SSH. Divernote's status line drops links, so
     // when the page cannot open here the status names the command that prints it.
-    const printIt = "Run divernote append with this issue's ID for the link.";
+    const printIt = "Run divernote append with the issue ID for the link.";
     let url;
     try {
       url = issueLink(await nodeOrigin(), issue.taskId);
