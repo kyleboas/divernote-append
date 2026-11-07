@@ -18,13 +18,13 @@ async function home(t, enrollment) {
 }
 
 /** The commands the extension registers, as Divernote would hold them. */
-function registered() {
+function registered(options) {
   const commands = new Map();
   const issueCommands = new Map();
   append({
     registerCommand: (name, handler) => commands.set(name, handler),
-    registerIssueCommand: (name, options, handler) => issueCommands.set(name, { ...options, handler }),
-  });
+    registerIssueCommand: (name, details, handler) => issueCommands.set(name, { ...details, handler }),
+  }, options);
   return { commands, issueCommands };
 }
 
@@ -52,13 +52,17 @@ test('divernote append <task-id> prints the link', async t => {
   assert.match(err, /Usage: divernote append/);
 });
 
-test('/append shows the link under the input', async t => {
+test('/append opens the issue in the browser here, and over SSH says how to print the link', async t => {
   const env = await home(t, { nodeOrigin: 'https://notes.example.com' });
   const saved = process.env.XDG_CONFIG_HOME;
   process.env.XDG_CONFIG_HOME = env.XDG_CONFIG_HOME;
   t.after(() => { if (saved === undefined) delete process.env.XDG_CONFIG_HOME; else process.env.XDG_CONFIG_HOME = saved; });
-  const { issueCommands } = registered();
-  const command = issueCommands.get('append');
-  assert.match(command.description, /comment/);
-  assert.deepEqual(await command.handler({ args: '', issue: { taskId: 'task-9' } }), { status: 'https://notes.example.com/app/#issue=task-9' });
+  const opened = [];
+  const run = (options, taskId = 'task-9') => registered(options).issueCommands.get('append').handler({ args: '', issue: { taskId } });
+  assert.match(registered().issueCommands.get('append').description, /comment/);
+  assert.deepEqual(await run({ env: {}, open: async url => { opened.push(url); return true; } }), { status: 'Opened this issue in your browser.' });
+  assert.deepEqual(opened, ['https://notes.example.com/app/#issue=task-9']);
+  assert.deepEqual(await run({ env: {}, open: async () => false }), { status: 'The browser could not be opened. Run divernote append with this issue's ID for the link.' });
+  assert.deepEqual(await run({ env: { SSH_CONNECTION: '1 2 3 4' }, open: async () => assert.fail('no browser over SSH') }), { status: 'Run divernote append with this issue's ID for the link.' });
+  assert.deepEqual(await run({ env: {}, open: async () => assert.fail('no link to open') }, 'a b'), { status: 'That is not an issue ID.' });
 });

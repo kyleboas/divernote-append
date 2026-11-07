@@ -1,6 +1,6 @@
 // divernote-append: a link that opens an issue in a browser, where its log and
 // changes can be selected and commented on. `/append` in an open issue shows
-// it; `divernote append <task-id>` prints it. See link.mjs.
+// opens it here; `divernote append <task-id>` prints it. See link.mjs.
 import { execFile } from 'node:child_process';
 import { issueLink, nodeOrigin } from './link.mjs';
 
@@ -13,14 +13,20 @@ function openInBrowser(url) {
   return new Promise(resolve => execFile(command, [url], { timeout: 5_000 }, error => resolve(!error)));
 }
 
-export default function append(divernote) {
+export default function append(divernote, { open = openInBrowser, env = process.env } = {}) {
   divernote.registerIssueCommand('append', { description: 'Open this issue in a browser to comment on it' }, async ({ issue }) => {
-    // Only the link: the command may run on another computer than the one reading it.
+    // The command runs in the terminal that typed it, so the browser here is
+    // the reader's, except over SSH. Divernote's status line drops links, so
+    // when the page cannot open here the status names the command that prints it.
+    const printIt = "Run divernote append with this issue's ID for the link.";
+    let url;
     try {
-      return { status: issueLink(await nodeOrigin(), issue.taskId) };
+      url = issueLink(await nodeOrigin(), issue.taskId);
     } catch (error) {
       return { status: error instanceof Error ? error.message : String(error) };
     }
+    if (env.SSH_CONNECTION || env.SSH_TTY) return { status: printIt };
+    return { status: await open(url) ? 'Opened this issue in your browser.' : `The browser could not be opened. ${printIt}` };
   });
 
   divernote.registerCommand('append', async ({ argv, env, stdout, stderr }) => {
